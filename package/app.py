@@ -1,5 +1,6 @@
 try:
     import sys
+    import os
     import requests
     import time
     import datetime
@@ -242,6 +243,10 @@ class App:
                 json.dump(self.vertretungsplan_json, file, indent=2)
 
         except FileNotFoundError or AttributeError:
+            try:
+                os.mkdir("vertretungsplan")
+            except ValueError:
+                pass
             with open(self.save_location, "w+") as file:
                 logging.info("rewriting file")
                 json.dump([
