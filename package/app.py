@@ -48,32 +48,32 @@ class App:
                       {"hour": 16, "minute": 30},
                       {"hour": 22, "minute": 0}]
 
-        real_timing = []
+        real_timings = []
         for e in timing:
-            real_timing.append(e["hour"] * 60 * 60 + e["minute"] * 60)
+            real_timings.append(e["hour"] * 60 * 60 + e["minute"] * 60)
 
         def check_time():
             time.sleep(0.1)
             now = datetime.datetime.now()
             real_now = now.hour * 60 * 60 + now.minute * 60 + now.second
             del now
-            real_last_update = self.table_object.last_update.hour * 60 * 60 +\
-                               self.table_object.last_update.minute * 60 +\
-                               self.table_object.last_update.second
+            real_last_update = self.table_object.last_update.hour * 60 * 60 \
+                               + self.table_object.last_update.minute * 60 \
+                               + self.table_object.last_update.second
 
             smaller = []
-            for e in real_timing:
-                if e - real_now >= 0:
-                    smaller.append({"index": real_timing.index(e), "difference": e - real_now})
+            for real_timing in real_timings:
+                if real_timing - real_now >= 0:
+                    smaller.append({"index": real_timings.index(real_timing), "difference": real_timing - real_now})
             if real_now - real_last_update >= 10 * 60:
                 if len(smaller) == 0:
                     logging.info("sleeping 100 sec")
                     time.sleep(100)
                 else:
-                    if real_timing[smaller[0]["index"]] == real_now:
+                    if real_timings[smaller[0]["index"]] == real_now:
                         self.update()
                     else:
-                        logging.info("sleeping for: " + str(smaller[0]["difference"]/60) + " minutes")
+                        logging.info("sleeping for: " + str(smaller[0]["difference"] / 60) + " minutes")
                         time.sleep(smaller[0]["difference"])
             else:
                 logging.info("sleeping " + str(10 * 60 - (real_now - real_last_update)) + " sec...")
@@ -144,9 +144,10 @@ class App:
 
             def extract_row(row):
                 data = []
-                for e in row:
-                    data.append(e["row"])
+                for other_row in row:
+                    data.append(other_row["row"])
                 return data
+
             additions = []
             for e in new_table:
                 if not e["row"] in extract_row(old_table):
@@ -177,7 +178,8 @@ class App:
                 return create_changes_structur(table["latest_status"], massage_changed, content_changed)
             else:
                 logging.info("nothing changed")
-                return create_changes_structur(table["latest_status"])  # TODO when status isnt changed dont write changes
+                return create_changes_structur(table["latest_status"])
+                # TODO when status isnt changed dont write changes
 
         def calc_file(table_item, date_of_table):
             found_year = False
@@ -193,8 +195,10 @@ class App:
                                 if day["day"] == date_of_table["day"]:
                                     found_day = True
                                     changes = add_changes_to_day(self.vertretungsplan_json[
-                                        self.vertretungsplan_json.index(year)]["months"][
-                                        year["months"].index(month)]["days"][month["days"].index(day)]["day_object"], table_item)
+                                                                     self.vertretungsplan_json.index(year)]["months"][
+                                                                     year["months"].index(month)]["days"][
+                                                                     month["days"].index(day)]["day_object"],
+                                                                 table_item)
                                     self.vertretungsplan_json[
                                         self.vertretungsplan_json.index(year)]["months"][
                                         year["months"].index(month)]["days"][month["days"].index(day)]["day_object"][
@@ -202,25 +206,25 @@ class App:
 
                             if not found_day:
                                 self.vertretungsplan_json[
-                                        self.vertretungsplan_json.index(year)]["months"][
-                                        year["months"].index(month)]["days"].append(
-                                        {"day": date_of_table["day"], "day_object": table_item}
-                                    )
+                                    self.vertretungsplan_json.index(year)]["months"][
+                                    year["months"].index(month)]["days"].append(
+                                    {"day": date_of_table["day"], "day_object": table_item}
+                                )
                     if not found_month:
                         self.vertretungsplan_json[
-                                self.vertretungsplan_json.index(year)]["months"].append(
-                                {"month": date_of_table["month"], "days": [
-                                    {"day": date_of_table["day"], "day_object": table_item}
-                                ]}
-                            )
-            if not found_year:
-                self.vertretungsplan_json.append(
-                        {"year": date_of_table["year"], "months":
-                            [{"month": date_of_table["month"], "days": [
+                            self.vertretungsplan_json.index(year)]["months"].append(
+                            {"month": date_of_table["month"], "days": [
                                 {"day": date_of_table["day"], "day_object": table_item}
                             ]}
-                             ]}
-                    )
+                        )
+            if not found_year:
+                self.vertretungsplan_json.append(
+                    {"year": date_of_table["year"], "months":
+                        [{"month": date_of_table["month"], "days": [
+                            {"day": date_of_table["day"], "day_object": table_item}
+                        ]}
+                         ]}
+                )
 
         def extract_date_of_table(title):
             date = title.split(" ")[0].split(".")
@@ -253,8 +257,10 @@ class TableUtil:
     def __init__(self, payload):
         self.payload = payload
         self.url_s = 'https://gymherderschule.de/iserv/login_check'
-        self.url_today = 'https://gymherderschule.de/iserv/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_001.htm'
-        self.url_tomorow = 'https://gymherderschule.de/iserv/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_002.htm'
+        self.url_today = 'https://gymherderschule.de/iserv' \
+                         '/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_001.htm'
+        self.url_tomorow = 'https://gymherderschule.de/iserv' \
+                           '/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_002.htm'
         self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
         self.table_header = None
         self.title_today = None
@@ -290,7 +296,6 @@ class TableUtil:
         contents = re.split("\n", contents)
         raw_status = self.soup(source).find(class_="mon_head")
         raw_status = self.soup(str(raw_status)).find_all("p")
-        day = None
         status = None
         for e in raw_status:
             if e.find("Stand:") != -1:
@@ -300,7 +305,7 @@ class TableUtil:
             colums = row.split("|")
             del colums[0]
             table.append({"id": unique_id,
-                         "row": colums})
+                          "row": colums})
             unique_id += 1
         i = 0
         while i < 3:
@@ -320,5 +325,11 @@ class TableUtil:
         time.sleep(0.1)
         request_data_today = sess.get(self.url_today, headers=self.headers)
         request_data_tomorow = sess.get(self.url_tomorow, headers=self.headers)
-        self.title_today, self.massage_today, self.content_today, self.status_today = self.formatting(request_data_today.content)
-        self.title_tomorow, self.massage_tomorow, self.content_tomorow, self.status_tomorow = self.formatting(request_data_tomorow.content)
+        self.title_today, \
+        self.massage_today, \
+        self.content_today, \
+        self.status_today = self.formatting(request_data_today.content)
+        self.title_tomorow, \
+        self.massage_tomorow, \
+        self.content_tomorow, \
+        self.status_tomorow = self.formatting(request_data_tomorow.content)
