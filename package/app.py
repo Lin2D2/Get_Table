@@ -1,12 +1,18 @@
-import sys
-import requests
-import time
-import datetime
-import re
-import logging
-import json
-import threading
-from bs4 import BeautifulSoup
+try:
+    import sys
+    import requests
+    import time
+    import datetime
+    import re
+    import logging
+    import json
+    import threading
+except ImportError:
+    sys.exit("failed failed please check if you install all needed packages")
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    sys.exit("failed because bs4 is not installed, do pip install bs4 to fix this")
 
 
 class App:
@@ -231,7 +237,7 @@ class App:
                 logging.info("writing file...")
                 json.dump(self.vertretungsplan_json, file, indent=2)
 
-        except FileNotFoundError and AttributeError:
+        except FileNotFoundError or AttributeError:
             with open(self.save_location, "w+") as file:
                 logging.info("rewriting file")
                 json.dump([
