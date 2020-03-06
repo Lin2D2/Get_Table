@@ -15,6 +15,9 @@ try:
 except ImportError:
     sys.exit("failed because bs4 is not installed, do pip install bs4 to fix this")
 
+from package.util.logging_time import LoggingTime
+logging_time = LoggingTime(logging.INFO)
+
 
 class App:
     def __init__(self):
@@ -27,18 +30,18 @@ class App:
             with open(self.save_location, "r") as file:
                 self.vertretungsplan_json = json.load(file)
         except FileNotFoundError:
-            logging.warning("couldnt find file")
+            logging_time.warning("couldnt find file")
         self.now = datetime.datetime.now()
         self.update()
         self.timing()
 
     def update(self):
-        logging.info("performing update...")
+        logging_time.info("performing update...")
         self.table_object.update()
         start_time = time.time()
         threading.Thread(target=self.write_file, args=[self.table_object], name="file_write").start()
         end_time = time.time()
-        logging.info("time taken to write file: " + str(end_time - start_time))
+        logging_time.info("time taken to write file: " + str(end_time - start_time))
 
     def timing(self, timing=None):
 
@@ -68,20 +71,20 @@ class App:
                     smaller.append({"index": real_timings.index(real_timing), "difference": real_timing - real_now})
             if real_now - real_last_update >= 10 * 60:
                 if len(smaller) == 0:
-                    logging.info("sleeping 100 sec")
+                    logging_time.info("sleeping 100 sec")
                     time.sleep(100)
                 else:
                     if real_timings[smaller[0]["index"]] == real_now:
                         self.update()
                     else:
-                        logging.info("sleeping for: " + str(smaller[0]["difference"] / 60) + " minutes")
+                        logging_time.info("sleeping for: " + str(smaller[0]["difference"] / 60) + " minutes")
                         time.sleep(smaller[0]["difference"])
             else:
-                logging.info("sleeping " + str(10 * 60 - (real_now - real_last_update)) + " sec...")
+                logging_time.info("sleeping " + str(10 * 60 - (real_now - real_last_update)) + " sec...")
                 time.sleep(10 * 60 - (real_now - real_last_update))
 
         while True:
-            logging.info("checking time...")
+            logging_time.info("checking time...")
             check_time()
 
     def write_file(self, object_of_table):
@@ -140,7 +143,7 @@ class App:
                                                    object_of_table.content_tomorow)
 
         def find_changes_in_table(old_table, new_table):
-            logging.info("looking for changes in table")
+            logging_time.info("looking for changes in table")
             unique_id = old_table[-1]["id"] + 1
 
             def extract_row(row):
@@ -159,15 +162,15 @@ class App:
             for e in old_table:
                 if not e["row"] in extract_row(new_table):
                     subtractions.append(e)
-            logging.debug(["additions: ", additions])
-            logging.debug(["subtractions: ", subtractions])
+            logging_time.debug(["additions: ", additions])
+            logging_time.debug(["subtractions: ", subtractions])
             return {"additions": additions, "subtractions": subtractions}
 
         def add_changes_to_day(day, table):
-            logging.debug(["day: ", day])
-            logging.debug(["table: ", table])
+            logging_time.debug(["day: ", day])
+            logging_time.debug(["table: ", table])
             if not day["inital_content"] == table["inital_content"]:
-                logging.debug(["add_changes_to_day day =", day])
+                logging_time.debug(["add_changes_to_day day =", day])
                 day["latest_status"] = table["latest_status"]
                 massage_changed = None
                 content_changed = None
@@ -178,7 +181,7 @@ class App:
                                                             table["inital_content"]["content"])
                 return create_changes_structur(table["latest_status"], massage_changed, content_changed)
             else:
-                logging.info("nothing changed")
+                logging_time.info("nothing changed")
                 return create_changes_structur(table["latest_status"])
                 # TODO when status isnt changed dont write changes
 
@@ -195,15 +198,14 @@ class App:
                             for day in month["days"]:
                                 if day["day"] == date_of_table["day"]:
                                     found_day = True
-                                    changes = add_changes_to_day(self.vertretungsplan_json[
-                                                                     self.vertretungsplan_json.index(year)]["months"][
-                                                                     year["months"].index(month)]["days"][
-                                                                     month["days"].index(day)]["day_object"],
-                                                                 table_item)
-                                    self.vertretungsplan_json[
+                                    table_object_json = self.vertretungsplan_json[
                                         self.vertretungsplan_json.index(year)]["months"][
-                                        year["months"].index(month)]["days"][month["days"].index(day)]["day_object"][
-                                        "changes"].append(changes)
+                                        year["months"].index(month)]["days"][month["days"].index(day)]["day_object"]
+                                    if not table_object_json["latest_status"] == table_item["latest_status"]:
+                                        changes = add_changes_to_day(table_object_json, table_item)
+                                        table_object_json["changes"].append(changes)
+                                    else:
+                                        logging_time.info("The Status didn't changed")
 
                             if not found_day:
                                 self.vertretungsplan_json[
@@ -235,11 +237,11 @@ class App:
             calc_file(table_item_today, extract_date_of_table(object_of_table.title_today))
             calc_file(table_item_tomorow, extract_date_of_table(object_of_table.title_tomorow))
         except AttributeError:
-            logging.warning("failed to calculate and construct json file")
+            logging_time.warning("failed to calculate and construct json file")
 
         try:
             with open(self.save_location, "w") as file:
-                logging.info("writing file...")
+                logging_time.info("writing file...")
                 json.dump(self.vertretungsplan_json, file, indent=2)
 
         except FileNotFoundError or AttributeError:
@@ -248,7 +250,7 @@ class App:
             except ValueError:
                 pass
             with open(self.save_location, "w+") as file:
-                logging.info("rewriting file")
+                logging_time.info("rewriting file")
                 json.dump([
                     {"year": self.now.year, "months":
                         [{"month": self.now.month, "days": [
@@ -281,7 +283,7 @@ class TableUtil:
     def update(self):
         self.get_page()
         self.last_update = datetime.datetime.now()
-        logging.info("last update at: " +
+        logging_time.info("last update at: " +
                      str(self.last_update.hour) + ":" +
                      str(self.last_update.minute) + ":" +
                      str(self.last_update.second))
