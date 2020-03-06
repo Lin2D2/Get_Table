@@ -183,7 +183,6 @@ class App:
             else:
                 logging_time.info("nothing changed")
                 return create_changes_structur(table["latest_status"])
-                # TODO when status isnt changed dont write changes
 
         def calc_file(table_item, date_of_table):
             found_year = False
