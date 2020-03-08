@@ -69,9 +69,11 @@ class App:
                     smaller.append({"index": real_timings.index(real_timing), "difference": real_timing - real_now})
             if real_now - real_last_update >= 10 * 60:
                 if len(smaller) == 0:
-                    # TODO do a better solution...
-                    logging_time.info("sleeping 100 sec")
-                    time.sleep(100)
+                    sleep_time = (24*60*60 - real_now) + real_timings[0]
+                    if sleep_time >= 10 * 60:
+                        logging_time.info("sleeping for: " + str(sleep_time / 60) + " minutes")
+                        time.sleep(0.001)
+                        time.sleep(sleep_time)
                 else:
                     if real_timings[smaller[0]["index"]] == real_now:
                         self.update()
