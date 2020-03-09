@@ -68,20 +68,28 @@ class App:
                 if real_timing - real_now >= 0:
                     smaller.append({"index": real_timings.index(real_timing), "difference": real_timing - real_now})
             if real_now - real_last_update >= 10 * 60:
-                if len(smaller) == 0:
-                    sleep_time = (24*60*60 - real_now) + real_timings[0]
-                    if sleep_time >= 10 * 60:
-                        logging_time.info("sleeping for: " + str(sleep_time / 60) + " minutes")
-                        time.sleep(0.001)
-                        time.sleep(sleep_time)
-                else:
-                    if real_timings[smaller[0]["index"]] == real_now:
-                        self.update()
+                if datetime.datetime.today().weekday() in range(0, 4):
+                    if len(smaller) == 0:
+                        sleep_time = (24*60*60 - real_now) + real_timings[0]
+                        if sleep_time >= 10 * 60:
+                            logging_time.info("sleeping for: " + str(sleep_time / 60) + " minutes")
+                            time.sleep(0.0001)
+                            time.sleep(sleep_time)
                     else:
-                        logging_time.info("sleeping for: " + str(smaller[0]["difference"] / 60) + " minutes")
-                        time.sleep(smaller[0]["difference"])
+                        if real_timings[smaller[0]["index"]] == real_now:
+                            self.update()
+                        else:
+                            logging_time.info("sleeping for: " + str(smaller[0]["difference"] / 60) + " minutes")
+                            time.sleep(0.0001)
+                            time.sleep(smaller[0]["difference"])
+                else:
+                    sleep_time = (24*60*60 - real_now)
+                    logging_time.info("sleeping for: " + str(sleep_time / 60) + " minutes")
+                    time.sleep(0.0001)
+                    time.sleep(sleep_time)
             else:
                 logging_time.info("sleeping " + str(10 * 60 - (real_now - real_last_update)) + " sec...")
+                time.sleep(0.0001)
                 time.sleep(10 * 60 - (real_now - real_last_update))
 
         while True:
