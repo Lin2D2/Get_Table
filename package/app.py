@@ -16,6 +16,8 @@ except ImportError:
     sys.exit("failed because bs4 is not installed, do pip install bs4 to fix this")
 
 from package.util.logging_time import LoggingTime
+from web_interface import app as web_app
+
 logging_time = LoggingTime(logging.INFO)
 
 
@@ -34,7 +36,13 @@ class App:
             logging_time.warning("couldnt find file")
         self.now = datetime.datetime.now()
         self.update()
+        threading.Thread(target=self.start_web_interface, name="web_threat").start()
         self.timing()
+
+    @staticmethod
+    def start_web_interface():
+        logging_time.info("starting web-thread...")
+        web_app.run(data=None, url="0.0.0.0", port="5000")
 
     def update(self):
         logging_time.info("performing update...")

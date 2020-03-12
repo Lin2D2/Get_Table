@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, inital-scale=1.0">
+    <title>Flask Parent Template</title>
+    <!--stylesheet-->
+    <link rel="stylesheet" href="{{ url_for('static',    filename='css/base.css') }}">
+  </head>
+  <body>
+    <header id="header" class="light_gray">
+      <div class="container">
+        <h1 class="title">Get table Data-View</h1>
+      </div>
+    </header>
+
+
+{% block body %}
+{% endblock %}
+
+ </body>
+</html>
