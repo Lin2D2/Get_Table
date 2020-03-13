@@ -178,7 +178,7 @@ class App:
                                                    object_of_table.content_tomorow)
 
         def find_changes_in_table(old_table, new_table):
-            logging_time.info("looking for changes in table", "file_write_thread")
+            logging_time.info("looking for changes in table")
             unique_id = old_table[-1]["id"] + 1
 
             def extract_row(row):
@@ -197,15 +197,15 @@ class App:
             for e in old_table:
                 if not e["row"] in extract_row(new_table):
                     subtractions.append(e)
-            logging_time.debug(["additions: ", additions], "file_write_thread")
-            logging_time.debug(["subtractions: ", subtractions], "file_write_thread")
+            logging_time.debug(["additions: ", additions])
+            logging_time.debug(["subtractions: ", subtractions])
             return {"additions": additions, "subtractions": subtractions}
 
         def add_changes_to_day(day, table):
-            logging_time.debug(["day: ", day], "file_write_thread")
-            logging_time.debug(["table: ", table], "file_write_thread")
+            logging_time.debug(["day: ", day])
+            logging_time.debug(["table: ", table])
             if not day["inital_content"] == table["inital_content"]:
-                logging_time.debug(["add_changes_to_day day =", day], "file_write_thread")
+                logging_time.debug(["add_changes_to_day day =", day])
                 day["latest_status"] = table["latest_status"]
                 massage_changed = None
                 content_changed = None
@@ -216,7 +216,7 @@ class App:
                                                             table["inital_content"]["content"])
                 return create_changes_structur(table["latest_status"], massage_changed, content_changed)
             else:
-                logging_time.info("nothing changed", "file_write_thread")
+                logging_time.info("nothing changed")
                 return create_changes_structur(table["latest_status"])
 
         def calc_file(table_item, date_of_table):
@@ -239,7 +239,7 @@ class App:
                                         changes = add_changes_to_day(table_object_json, table_item)
                                         table_object_json["changes"].append(changes)
                                     else:
-                                        logging_time.info("The Status didn't changed", "file_write_thread")
+                                        logging_time.info("The Status didn't changed")
 
                             if not found_day:
                                 self.vertretungsplan_json[
@@ -271,11 +271,11 @@ class App:
             calc_file(table_item_today, extract_date_of_table(object_of_table.title_today))
             calc_file(table_item_tomorow, extract_date_of_table(object_of_table.title_tomorow))
         except AttributeError:
-            logging_time.warning("failed to calculate and construct json file", "file_write_thread")
+            logging_time.warning("failed to calculate and construct json file")
 
         try:
             with open(self.save_location, "w") as file:
-                logging_time.info("writing file...", "file_write_thread")
+                logging_time.info("writing file...")
                 json.dump(self.vertretungsplan_json, file, indent=2)
 
         except FileNotFoundError or AttributeError:
@@ -284,7 +284,7 @@ class App:
             except ValueError:
                 pass
             with open(self.save_location, "w+") as file:
-                logging_time.info("rewriting file", "file_write_thread")
+                logging_time.info("rewriting file")
                 json.dump([
                     {"year": self.now.year, "months":
                         [{"month": self.now.month, "days": [
@@ -294,7 +294,7 @@ class App:
                 ], file, indent=2)
 
         end_time = time.time()
-        logging_time.info("time taken to write file: " + str(end_time - start_time), "file_write_thread")
+        logging_time.info("time taken to write file: " + str(end_time - start_time))
 
 
 class TableUtil:
