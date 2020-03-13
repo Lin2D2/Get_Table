@@ -1,4 +1,9 @@
-from flask import Flask
+import sys
+
+try:
+    from flask import Flask
+except ImportError:
+    sys.exit("failed to import flask")
 
 
 def routes(app, data):
