@@ -363,11 +363,13 @@ class TableUtil:
         time.sleep(0.1)
         request_data_today = sess.get(self.url_today, headers=self.headers)
         request_data_tomorow = sess.get(self.url_tomorow, headers=self.headers)
-        self.title_today, \
-        self.massage_today, \
-        self.content_today, \
-        self.status_today = self.formatting(request_data_today.content)
-        self.title_tomorow, \
-        self.massage_tomorow, \
-        self.content_tomorow, \
-        self.status_tomorow = self.formatting(request_data_tomorow.content)
+        if not str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+            self.title_today, \
+            self.massage_today, \
+            self.content_today, \
+            self.status_today = self.formatting(request_data_today.content)
+        if not str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+            self.title_tomorow, \
+            self.massage_tomorow, \
+            self.content_tomorow, \
+            self.status_tomorow = self.formatting(request_data_tomorow.content)
