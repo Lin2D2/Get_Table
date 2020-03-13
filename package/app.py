@@ -22,19 +22,13 @@ from web_interface import app as web_app
 logging_time = logging.getLogger("main")
 logging_time.setLevel(logging.DEBUG)
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+handler.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(levelname)s in %(threadName)s: %(message)s',
+    "%Y-%m-%d %H:%M:%S"))
 
-# create formatter
-formatter = logging.Formatter("%(asctime)s::%(levelname)s::%(message)s",
-                              "%Y-%m-%d %H:%M:%S")
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logging_time.addHandler(ch)
+logging.root.handlers = [handler]
 
 
 class App:
