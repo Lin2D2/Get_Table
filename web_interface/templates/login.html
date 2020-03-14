@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, inital-scale=1.0">
+    <title>Flask Parent Template</title>
+    <!--stylesheet-->
+    <link rel="stylesheet" href="{{ url_for('static',    filename='login.css') }}">
+    <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&display=swap"
+    rel="stylesheet"
+  />
+  </head>
+
+  <body>
+      <div class="box">
+          <h2>Login</h2>
+          <form action="/login_check" method="POST">
+              <div class="inputBox">
+                  <input type="text" name="_username" required>
+                  <label>Username</label>
+              </div>
+              <div class="inputBox">
+                <input type="password" name="_password" required>
+                <label>password</label>
+            </div>
+            <input type="submit" name="_submit" value="Submit">
+          </form>
+      </div>
+
+ </body>
+</html>
