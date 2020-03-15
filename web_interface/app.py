@@ -18,6 +18,11 @@ def routes(app, data, parent):
         return render_template("home.html",
                                grid_tiles=construct_grid_table())
 
+    @app.route("exit")
+    def _quit():
+        # TODO find a way to check out or remove
+        return
+
     @app.route("/login")
     def login():
         return render_template("login.html")
@@ -33,6 +38,11 @@ def routes(app, data, parent):
             return redirect("/")
         else:
             return str(["data", _username, _password])
+
+    @app.route("/table")
+    def table():
+        # TODO build proper page for Vertretungsplan Today and Tomoorow
+        return
 
     @app.route("/table_view_of_dat/<year>/<month>/<day>")
     def table_view_of_dat(year, month, day):

@@ -108,6 +108,7 @@
     position: absolute;
     left: -999px;
     transition: var(--transition-speed);
+    max-lines: 2;
   }
   
   .navbar:hover .logo i {
@@ -171,7 +172,7 @@
     }
   
     .navbar:hover {
-      width: 14rem;
+      width: 15rem;
     }
   
     .navbar:hover .link-text {
@@ -180,7 +181,7 @@
   
     .navbar:hover .logo i
     {
-      margin-left: 11rem;
+      margin-left: 12rem;
     }
   
     .navbar:hover .logo-text
