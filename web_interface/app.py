@@ -18,7 +18,7 @@ def routes(app, data, parent):
         return render_template("home.html",
                                grid_tiles=construct_grid_table())
 
-    @app.route("exit")
+    @app.route("/exit")
     def _quit():
         # TODO find a way to check out or remove
         return
@@ -44,7 +44,7 @@ def routes(app, data, parent):
         # TODO build proper page for Vertretungsplan Today and Tomoorow
         return
 
-    @app.route("/table_view_of_dat/<year>/<month>/<day>")
+    @app.route("/table_view_of_data/<year>/<month>/<day>")
     def table_view_of_dat(year, month, day):
         return str([year, month, day])
 

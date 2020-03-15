@@ -5,7 +5,7 @@
         <div id="outer-box">
             <div id="list_view_of_data">
                 {% for day in grid_tiles %}
-                    <a class="grid_tile" href="">
+                    <a class="grid_tile" href='/table_view_of_data/{{day["year"]}}/{{day["month"]}}/{{day["day"]}}'>
                         <label>{{day["year"]}}:{{day["month"]}}:{{day["day"]}}</label>
                         
                     </a>
