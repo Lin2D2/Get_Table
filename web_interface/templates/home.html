@@ -2,6 +2,7 @@
 {% block body %}
 <section>
     <main>
+        <link itemprop="stylesheet" rel="stylesheet" href="{{ url_for('static',    filename='home.css') }}">
         <div id="outer-box">
             <div id="list_view_of_data">
                 {% for day in grid_tiles %}
