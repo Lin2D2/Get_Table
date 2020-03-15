@@ -10,12 +10,13 @@ except ImportError:
 loged_in = False
 
 
-def routes(app, data):
+def routes(app, data, parent):
     @app.route("/")
     def home():
         if not loged_in:
             return redirect("/login")
-        return render_template("home.html")
+        return render_template("home.html",
+                               grid_tiles=construct_grid_table())
 
     @app.route("/login")
     def login():
@@ -37,12 +38,43 @@ def routes(app, data):
     def table_view_of_dat(year, month, day):
         return str([year, month, day])
 
+    def construct_grid_table():
+        file_write_thread = parent.update()
+        if file_write_thread:
+            file_write_thread.join()
+        table_data = parent.vertretungsplan_json
 
-def run(data, url, port):
+        def calc_len_changes(changes):
+            result = 0
+            for e in changes:
+                if e["changed"]:
+                    result = result + \
+                             len(e["changed"]["content"]["additions"]) - \
+                             len(e["changed"]["content"]["subtractions"])
+            return result
+
+        grid_tiles = []
+        for year in reversed(table_data):
+            for month in reversed(year["months"]):
+                for day in reversed(month["days"]):
+                    grid_tiles.append(
+                        {
+                            "year": year["year"],
+                            "month": month["month"],
+                            "day": day["day"],
+                            "lenght_of_table": (len(day["day_object"]["inital_content"]["content"]) +
+                                                calc_len_changes(day["day_object"]["changes"])),
+                            "latest_status": day["day_object"]["latest_status"],
+                        }
+                    )
+        return grid_tiles
+
+
+def run(data, parent,  url, port):
     app = Flask(__name__)
-    routes(app, data)
-    app.run(host=url, port=port, threaded=True, use_reloader=False)
+    routes(app, data, parent)
+    app.run(host=url, port=port, threaded=False, use_reloader=False, debug=True)
 #     app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
 
 
-# run(data=None, url="0.0.0.0", port="5000")
+# run(data=None, parent=None, url="0.0.0.0", port="5000")

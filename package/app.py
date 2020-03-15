@@ -49,15 +49,18 @@ class App:
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
         self.timing()
 
-    @staticmethod
-    def start_web_interface():
+    def start_web_interface(self):
         logging_time.info("starting web-thread...")
-        web_app.run(data=None, url="0.0.0.0", port="5000")
+        web_app.run(data=None, parent=self, url="0.0.0.0", port="5000")
 
     def update(self):
         logging_time.info("performing update...")
         self.table_object.update()
-        threading.Thread(target=self.write_file, args=[self.table_object], name="file_write").start()
+        file_write_thread = threading.Thread(
+            target=self.write_file,
+            args=[self.table_object],
+            name="file_write").start()
+        return file_write_thread
 
     def timing(self, timing=None):
 

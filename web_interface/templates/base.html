@@ -5,15 +5,39 @@
     <meta name="viewport" content="width=device-width, inital-scale=1.0">
     <title>Flask Parent Template</title>
     <!--stylesheet-->
-    <link rel="stylesheet" href="{{ url_for('static',    filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',    filename='base.css') }}">
+    <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&display=swap"
+    rel="stylesheet"/>
+  <!-- Place your kit's code here -->
+  <script src="https://kit.fontawesome.com/bd06518ccd.js" crossorigin="anonymous"></script>
   </head>
-  <body>
-    <header id="header" class="light_gray">
-      <div class="container">
-        <h1 class="title">Get table Data-View</h1>
-      </div>
-    </header>
 
+  <body>
+    <nav class="navbar">
+      <ul class="navbar-nav">
+        <li class="logo">
+          <a href="/" class="nav-link">
+            <span class="link-text logo-text">Get Page Viewport</span>
+            <i class="fas fa-angle-double-right fa-2x"></i>
+          </a>
+        </li>
+  
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="fas fa-table fa-2x"></i>
+            <span class="link-text">Table</span>
+          </a>
+        </li>
+  
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="fas fa-sign-out-alt fa-2x"></i>
+            <span class="link-text">Exit</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
 {% block body %}
 {% endblock %}
