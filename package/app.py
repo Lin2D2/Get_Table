@@ -31,6 +31,37 @@ handler.setFormatter(logging.Formatter(
 logging.root.handlers = [handler]
 
 
+def correct_errors_because_of_changes(table):
+    for year in table:
+        for month in year["months"]:
+            for day in month["days"]:
+                for change in day["day_object"]["changes"]:
+                    if change["changed"]:
+                        for item in change["changed"]["content"]["additions"]:
+                            try:
+                                item2 = {"id": item["unique_id"], "row": item["row"]}
+                                change["changed"]["content"]["additions"][
+                                    change["changed"]["content"]["additions"].index(item)] = item2
+                            except KeyError:
+                                pass
+                        for item in change["changed"]["content"]["subtractions"]:
+                            try:
+                                item2 = {"id": item["unique_id"], "row": item["row"]}
+                                change["changed"]["content"]["subtractions"][
+                                    change["changed"]["content"]["subtractions"].index(item)] = item2
+                            except KeyError:
+                                pass
+    return table
+
+
+with open("vertretungsplan/vertretungsplan.json", "r") as file:
+    vertretungsplan_json = json.load(file)
+    vertretungsplan_json = correct_errors_because_of_changes(vertretungsplan_json)
+with open("vertretungsplan/vertretungsplan.json", "w") as file:
+    json.dump(vertretungsplan_json, file, indent=2)
+del vertretungsplan_json
+
+
 class App:
     def __init__(self):
         logging_time.info("Start")
