@@ -25,13 +25,8 @@ def calc(table_dont_change, changed_view=False):
                     for detected in NDruck_was:
                         if addition["id"] == detected:
                             del detected
-    print(len(NDruck_was))
-    print(NDruck_was)
     if len(NDruck_was) == 0:
-        print(index_of_NDruck)
-        print(table["inital_content"]["header"]["row"][index_of_NDruck])
         del table["inital_content"]["header"]["row"][index_of_NDruck]
-        print(table["inital_content"]["header"]["row"])
         for row in table["inital_content"]["content"]:
             del row["row"][index_of_NDruck]
         if changed_view:
