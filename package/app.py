@@ -42,6 +42,8 @@ class App:
         try:
             with open(self.save_location, "r") as file:
                 self.vertretungsplan_json = json.load(file)
+            # TODO check for spaces on end of the row, older version of this programm left on there which can result errors
+            # TODO changes all unique_id's to id's in additions and subtractions!!!
         except FileNotFoundError:
             logging_time.warning("couldnt find file")
         self.now = datetime.datetime.now()
@@ -187,7 +189,7 @@ class App:
             additions = []
             for e in new_table:
                 if not e["row"] in extract_row(old_table):
-                    additions.append({"unique_id": unique_id, "row": e["row"]})
+                    additions.append({"id": unique_id, "row": e["row"]})
                     unique_id += 1
 
             subtractions = []
@@ -345,6 +347,7 @@ class TableUtil:
         for row in contents:
             colums = row.split("|")
             del colums[0]
+            del colums[-1]
             table.append({"id": unique_id,
                           "row": colums})
             unique_id += 1
