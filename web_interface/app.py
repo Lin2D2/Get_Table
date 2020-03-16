@@ -5,6 +5,8 @@ try:
 except ImportError:
     sys.exit("failed to import flask")
 
+from package.util.calc_proper_table import calc as calc_proper_table
+
 # TODO dont use global var
 # TODO need some kind of cokkie instead of this shit
 loged_in = False
@@ -21,7 +23,7 @@ def routes(app, data, parent):
     @app.route("/exit")
     def _quit():
         # TODO find a way to check out or remove
-        return
+        return ""
 
     @app.route("/login")
     def login():
@@ -42,17 +44,34 @@ def routes(app, data, parent):
     @app.route("/table")
     def table():
         # TODO build proper page for Vertretungsplan Today and Tomoorow
-        return
+        return ""
 
     @app.route("/table_view_of_data/<year>/<month>/<day>")
-    def table_view_of_dat(year, month, day):
-        return str([year, month, day])
+    def table_view_of_data(year, month, day):
+        table_data = get_table()
+        for _year in table_data:
+            if str(_year["year"]) == str(year):
+                for _month in _year["months"]:
+                    if str(_month["month"]) == str(month):
+                        for _day in _month["days"]:
+                            if str(_day["day"]) == str(day):
+                                table_data = _day["day_object"]
+                                # table_data = calc_proper_table(_day["day_object"])
+        print(table_data)
+        return render_template("table_view_of_data.html",
+                               year=year,
+                               month=month,
+                               day=day,
+                               table=table_data)
 
-    def construct_grid_table():
+    def get_table():
         file_write_thread = parent.update()
         if file_write_thread:
             file_write_thread.join()
-        table_data = parent.vertretungsplan_json
+        return parent.vertretungsplan_json
+
+    def construct_grid_table():
+        table_data = get_table()
 
         def calc_len_changes(changes):
             result = 0

@@ -8,7 +8,7 @@
     --bg-secondary: #141418;
     --transition-speed: 600ms;
   }
-  
+
   body {
     color: black;
     background-color: white;
@@ -25,6 +25,7 @@
     position: fixed;
     background-color: var(--bg-primary);
     transition: width 600ms ease;
+    z-index: 2;
   }
   
   .navbar-nav {
@@ -114,7 +115,7 @@
   .navbar:hover .logo i {
     transform: rotate(-180deg);
   }
-  
+
   /* Small screens */
   @media only screen and (max-width: 600px) {
     .navbar {
