@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+<section>
+    <main>
+        <link itemprop="stylesheet" rel="stylesheet" href="{{ url_for('static',    filename='table_view_of_data.css') }}">
+        <center><label>{{table["day"]}}</label></center>
+        <table>
+            <thead>
+              <tr>
+                {% for item in table["inital_content"]["header"]["row"] %}
+                    <th>{{item}}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+                {% for item in table["inital_content"]["content"] %}
+                <tr>
+                    {% for row in item["row"] %}
+                        <td data-column='{{ table["inital_content"]["header"]["row"][item["row"].index(row)] }}'>{{row}}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+    </main>
+</section>
+{% endblock %}
