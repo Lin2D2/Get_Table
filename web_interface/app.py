@@ -55,14 +55,14 @@ def routes(app, data, parent):
                     if str(_month["month"]) == str(month):
                         for _day in _month["days"]:
                             if str(_day["day"]) == str(day):
-                                table_data = _day["day_object"]
-                                # table_data = calc_proper_table(_day["day_object"])
-        print(table_data)
-        return render_template("table_view_of_data.html",
-                               year=year,
-                               month=month,
-                               day=day,
-                               table=table_data)
+                                # table_data = _day["day_object"]
+                                table_data = calc_proper_table(_day["day_object"])
+                                print(table_data)
+                                return render_template("table_view_of_data.html",
+                                                       year=year,
+                                                       month=month,
+                                                       day=day,
+                                                       table=table_data)
 
     def get_table():
         file_write_thread = parent.update()
