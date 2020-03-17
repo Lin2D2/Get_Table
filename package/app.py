@@ -51,6 +51,11 @@ def correct_errors_because_of_changes(table):
                                     change["changed"]["content"]["subtractions"].index(item)] = item2
                             except KeyError:
                                 pass
+                for content in day["day_object"]["inital_content"]["content"]:
+                    if content["row"][-1] == "":
+                        del content["row"][-1]
+                if day["day_object"]["inital_content"]["header"]["row"][-1] == "":
+                    del day["day_object"]["inital_content"]["header"]["row"][-1]
     return table
 
 
