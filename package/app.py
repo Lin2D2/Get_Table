@@ -23,7 +23,7 @@ logging_time = logging.getLogger("main")
 logging_time.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
+handler.setLevel(logging.DEBUG)
 handler.setFormatter(logging.Formatter(
     '[%(asctime)s] %(levelname)s in %(threadName)s: %(message)s',
     "%Y-%m-%d %H:%M:%S"))
@@ -31,59 +31,20 @@ handler.setFormatter(logging.Formatter(
 logging.root.handlers = [handler]
 
 
-def correct_errors_because_of_changes(table):
-    for year in table:
-        for month in year["months"]:
-            for day in month["days"]:
-                for change in day["day_object"]["changes"]:
-                    if change["changed"]:
-                        for item in change["changed"]["content"]["additions"]:
-                            try:
-                                item2 = {"id": item["unique_id"], "row": item["row"]}
-                                change["changed"]["content"]["additions"][
-                                    change["changed"]["content"]["additions"].index(item)] = item2
-                            except KeyError:
-                                pass
-                        for item in change["changed"]["content"]["subtractions"]:
-                            try:
-                                item2 = {"id": item["unique_id"], "row": item["row"]}
-                                change["changed"]["content"]["subtractions"][
-                                    change["changed"]["content"]["subtractions"].index(item)] = item2
-                            except KeyError:
-                                pass
-                for content in day["day_object"]["inital_content"]["content"]:
-                    if content["row"][-1] == "":
-                        del content["row"][-1]
-                if day["day_object"]["inital_content"]["header"]["row"][-1] == "":
-                    del day["day_object"]["inital_content"]["header"]["row"][-1]
-    return table
-
-
-with open("vertretungsplan/vertretungsplan.json", "r") as file:
-    vertretungsplan_json = json.load(file)
-    vertretungsplan_json = correct_errors_because_of_changes(vertretungsplan_json)
-with open("vertretungsplan/vertretungsplan.json", "w") as file:
-    json.dump(vertretungsplan_json, file, indent=2)
-del vertretungsplan_json
-
-
 class App:
     def __init__(self):
         logging_time.info("Start")
         time.sleep(0.01)
-        username = input("enter the username: ")
-        password = input("enter the password: ")
-        self.table_object = TableUtil({'_username': username, '_password': password})
+        self.table_object = TableUtil()
         self.save_location = "vertretungsplan/vertretungsplan.json"
         try:
             with open(self.save_location, "r") as file:
                 self.vertretungsplan_json = json.load(file)
-            # TODO check for spaces on end of the row, older version of this programm left on there which can result errors
-            # TODO changes all unique_id's to id's in additions and subtractions!!!
         except FileNotFoundError:
             logging_time.warning("couldnt find file")
         self.now = datetime.datetime.now()
         self.update()
+        logging_time.debug(self.table_object.content_today)
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
         self.timing()
 
@@ -333,13 +294,9 @@ class App:
 
 
 class TableUtil:
-    def __init__(self, payload):
-        self.payload = payload
-        self.url_s = 'https://gymherderschule.de/iserv/login_check'
-        self.url_today = 'https://gymherderschule.de/iserv' \
-                         '/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_001.htm'
-        self.url_tomorow = 'https://gymherderschule.de/iserv' \
-                           '/infodisplay/file/23/infodisplay/0/SchuelerOnline/subst_002.htm'
+    def __init__(self):
+        self.new_url_today = "https://gymherderschule.de/iserv/public/infodisplay/file/22/infodisplay/e2005c52fea9317b5c110d5ab103fede/SchuelerOnline/subst_001.htm"
+        self.new_url_tomorow = "https://gymherderschule.de/iserv/public/infodisplay/file/23/infodisplay/60d69d2be100b647e7bc0cc949431bf6/SchuelerOnline/subst_002.htm"
         self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
         self.table_header = None
         self.title_today = None
@@ -382,11 +339,12 @@ class TableUtil:
         table = []
         for row in contents:
             colums = row.split("|")
-            del colums[0]
-            del colums[-1]
-            table.append({"id": unique_id,
-                          "row": colums})
-            unique_id += 1
+            if len(colums) > 1:
+                del colums[0]
+                del colums[-1]
+                table.append({"id": unique_id,
+                              "row": colums})
+                unique_id += 1
         i = 0
         while i < 3:
             i += 1
@@ -401,17 +359,17 @@ class TableUtil:
 
     def get_page(self):
         sess = requests.Session()
-        sess.post(self.url_s, data=self.payload, headers=self.headers)
-        time.sleep(0.1)
-        request_data_today = sess.get(self.url_today, headers=self.headers)
-        request_data_tomorow = sess.get(self.url_tomorow, headers=self.headers)
-        if not str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+        request_data_today = sess.get(self.new_url_today, headers=self.headers)
+        request_data_tomorow = sess.get(self.new_url_tomorow, headers=self.headers)
+        if str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
             self.title_today, \
             self.massage_today, \
             self.content_today, \
             self.status_today = self.formatting(request_data_today.content)
-        if not str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+        if str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
             self.title_tomorow, \
             self.massage_tomorow, \
             self.content_tomorow, \
             self.status_tomorow = self.formatting(request_data_tomorow.content)
+        else:
+            print("Keine Vertretung")
