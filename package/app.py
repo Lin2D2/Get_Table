@@ -14,6 +14,10 @@ try:
     from bs4 import BeautifulSoup
 except ImportError:
     sys.exit("failed because bs4 is not installed, do pip install bs4 to fix this")
+try:
+    import sqlitedict
+except ImportError:
+    sys.exit("Failed to import sqlitedict")
 
 
 from web_interface import app as web_app
@@ -37,15 +41,10 @@ class App:
         logging_time.info("Start")
         time.sleep(0.01)
         self.table_object = TableUtil()
-        self.save_location = "vertretungsplan/vertretungsplan.json"
-        try:
-            with open(self.save_location, "r") as file:
-                self.vertretungsplan_json = json.load(file)
-        except FileNotFoundError:
-            logging_time.warning("couldnt find file")
+        self.database_name = "vertretungsplan/data_base.sqlite"
+        self.db_keys = "db_keys"
         self.now = datetime.datetime.now()
         self.update()
-        logging_time.debug(self.table_object.content_today)
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
         self.timing()
 
@@ -56,11 +55,11 @@ class App:
     def update(self):
         logging_time.info("performing update...")
         self.table_object.update()
-        file_write_thread = threading.Thread(
+        database_write = threading.Thread(
             target=self.write_file,
             args=[self.table_object],
             name="file_write").start()
-        return file_write_thread
+        return database_write
 
     def timing(self, timing=None):
 
@@ -118,8 +117,6 @@ class App:
             check_time()
 
     def write_file(self, object_of_table):
-        start_time = time.time()
-
         def create_changes_structur(status, massage=None, content=None):
             if not massage and not content:
                 return {
@@ -161,18 +158,6 @@ class App:
                     create_changes_structur(status)
                 ]
             }
-
-        table_item_today = create_table_structur(object_of_table.status_today,
-                                                 object_of_table.title_today,
-                                                 object_of_table.table_header,
-                                                 object_of_table.massage_today,
-                                                 object_of_table.content_today)
-
-        table_item_tomorow = create_table_structur(object_of_table.status_tomorow,
-                                                   object_of_table.title_tomorow,
-                                                   object_of_table.table_header,
-                                                   object_of_table.massage_tomorow,
-                                                   object_of_table.content_tomorow)
 
         def find_changes_in_table(old_table, new_table):
             logging_time.info("looking for changes in table")
@@ -216,82 +201,53 @@ class App:
                 logging_time.info("nothing changed")
                 return create_changes_structur(table["latest_status"])
 
-        def calc_file(table_item, date_of_table):
-            found_year = False
-            for year in self.vertretungsplan_json:
-                if year["year"] == date_of_table["year"]:
-                    found_year = True
-                    found_month = False
-                    for month in year["months"]:
-                        if month["month"] == date_of_table["month"]:
-                            found_month = True
-                            found_day = False
-                            for day in month["days"]:
-                                if day["day"] == date_of_table["day"]:
-                                    found_day = True
-                                    table_object_json = self.vertretungsplan_json[
-                                        self.vertretungsplan_json.index(year)]["months"][
-                                        year["months"].index(month)]["days"][month["days"].index(day)]["day_object"]
-                                    if not table_object_json["latest_status"] == table_item["latest_status"]:
-                                        changes = add_changes_to_day(table_object_json, table_item)
-                                        table_object_json["changes"].append(changes)
-                                    else:
-                                        logging_time.info("The Status didn't changed")
-
-                            if not found_day:
-                                self.vertretungsplan_json[
-                                    self.vertretungsplan_json.index(year)]["months"][
-                                    year["months"].index(month)]["days"].append(
-                                    {"day": date_of_table["day"], "day_object": table_item}
-                                )
-                    if not found_month:
-                        self.vertretungsplan_json[
-                            self.vertretungsplan_json.index(year)]["months"].append(
-                            {"month": date_of_table["month"], "days": [
-                                {"day": date_of_table["day"], "day_object": table_item}
-                            ]}
-                        )
-            if not found_year:
-                self.vertretungsplan_json.append(
-                    {"year": date_of_table["year"], "months":
-                        [{"month": date_of_table["month"], "days": [
-                            {"day": date_of_table["day"], "day_object": table_item}
-                        ]}
-                         ]}
-                )
+        def write_to_db(date, content):
+            with sqlitedict.SqliteDict(self.database_name) as db_dict:
+                try:
+                    # try if day is allready there if yes then
+                    day_dict = db_dict[date]
+                    logging_time.debug(f'day dict {day_dict}')
+                    # append changes
+                    db_dict[date] = day_dict["changes"].append(add_changes_to_day(day_dict, content))
+                    try:
+                        db_dict[self.db_keys] = db_dict[self.db_keys]["keys"].append(date)
+                    except KeyError or TypeError:
+                        db_dict[self.db_keys] = {"keys": [date]}
+                    db_dict.commit(blocking=True)
+                except KeyError or TypeError:
+                    # if not add day as new day
+                    db_dict[date] = content
+                    try:
+                        db_dict[self.db_keys] = db_dict[self.db_keys]["keys"].append(date)
+                    except KeyError or TypeError:
+                        db_dict[self.db_keys] = {"keys": [date]}
+                    db_dict.commit(blocking=True)
+            with sqlitedict.SqliteDict(self.database_name) as db_dict:
+                logging_time.debug(f'print after write {db_dict[date]}')
 
         def extract_date_of_table(title):
             date = title.split(" ")[0].split(".")
-            return {"day": int(date[0]), "month": int(date[1]), "year": int(date[2])}
+            return f'{date[0]}:{date[1]}:{date[2]}'
 
-        try:
-            calc_file(table_item_today, extract_date_of_table(object_of_table.title_today))
-            calc_file(table_item_tomorow, extract_date_of_table(object_of_table.title_tomorow))
-        except AttributeError:
-            logging_time.warning("failed to calculate and construct json file")
+        table_item_today = create_table_structur(object_of_table.status_today,
+                                                 object_of_table.title_today,
+                                                 object_of_table.table_header,
+                                                 object_of_table.massage_today,
+                                                 object_of_table.content_today)
+        logging_time.info("writing today")
+        write_to_db(extract_date_of_table(table_item_today["day"]), table_item_today)
 
-        try:
-            with open(self.save_location, "w") as file:
-                logging_time.info("writing file...")
-                json.dump(self.vertretungsplan_json, file, indent=2)
-
-        except FileNotFoundError or AttributeError:
-            try:
-                os.mkdir("vertretungsplan")
-            except ValueError:
-                pass
-            with open(self.save_location, "w+") as file:
-                logging_time.info("rewriting file")
-                json.dump([
-                    {"year": self.now.year, "months":
-                        [{"month": self.now.month, "days": [
-                            {"day": self.now.day, "day_object": table_item_today}
-                        ]}
-                         ]}
-                ], file, indent=2)
-
-        end_time = time.time()
-        logging_time.info("time taken to write file: " + str(end_time - start_time))
+        table_item_tomorow = create_table_structur(object_of_table.status_tomorow,
+                                                   object_of_table.title_tomorow,
+                                                   object_of_table.table_header,
+                                                   object_of_table.massage_tomorow,
+                                                   object_of_table.content_tomorow)
+        logging_time.info("writing tomorow")
+        write_to_db(extract_date_of_table(table_item_tomorow["day"]), table_item_tomorow)
+        with sqlitedict.SqliteDict(self.database_name) as db_dict:
+            logging_time.debug(f'dab_keys: {db_dict[self.db_keys]}')
+            # for key in db_dict[self.db_keys]:
+            #     logging_time.debug(f'item in db: {db_dict[key]}')
 
 
 class TableUtil:
