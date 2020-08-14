@@ -31,6 +31,7 @@ handler.setFormatter(logging.Formatter(
 logging.root.handlers = [handler]
 
 
+# TODO database instead of json file
 class App:
     def __init__(self):
         logging_time.info("Start")
