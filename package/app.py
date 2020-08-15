@@ -17,7 +17,7 @@ except ImportError:
 try:
     import tinydb
 except ImportError:
-    sys.exit("Failed to import sqlitedict")
+    sys.exit("Failed to import tinydb")
 
 
 from web_interface import app as web_app
