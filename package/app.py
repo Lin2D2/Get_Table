@@ -15,7 +15,7 @@ try:
 except ImportError:
     sys.exit("failed because bs4 is not installed, do pip install bs4 to fix this")
 try:
-    import sqlitedict
+    import tinydb
 except ImportError:
     sys.exit("Failed to import sqlitedict")
 
@@ -41,7 +41,7 @@ class App:
         logging_time.info("Start")
         time.sleep(0.01)
         self.table_object = TableUtil()
-        self.database_name = "vertretungsplan/data_base.sqlite"
+        self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
         self.db_keys = "db_keys"
         self.now = datetime.datetime.now()
         self.update()
@@ -149,7 +149,7 @@ class App:
         def create_table_structur(status, title, header, massage, content):
             return {
                 "latest_status": status,
-                "day": title,
+                "date": title,
                 "inital_content": {"header": header,
                                    "title": title,
                                    "massage": massage,
@@ -202,28 +202,14 @@ class App:
                 return create_changes_structur(table["latest_status"])
 
         def write_to_db(date, content):
-            with sqlitedict.SqliteDict(self.database_name) as db_dict:
-                try:
-                    # try if day is allready there if yes then
-                    day_dict = db_dict[date]
-                    logging_time.debug(f'day dict {day_dict}')
-                    # append changes
-                    db_dict[date] = day_dict["changes"].append(add_changes_to_day(day_dict, content))
-                    try:
-                        db_dict[self.db_keys] = db_dict[self.db_keys]["keys"].append(date)
-                    except KeyError or TypeError:
-                        db_dict[self.db_keys] = {"keys": [date]}
-                    db_dict.commit(blocking=True)
-                except KeyError or TypeError:
-                    # if not add day as new day
-                    db_dict[date] = content
-                    try:
-                        db_dict[self.db_keys] = db_dict[self.db_keys]["keys"].append(date)
-                    except KeyError or TypeError:
-                        db_dict[self.db_keys] = {"keys": [date]}
-                    db_dict.commit(blocking=True)
-            with sqlitedict.SqliteDict(self.database_name) as db_dict:
-                logging_time.debug(f'print after write {db_dict[date]}')
+            try:
+                Date = tinydb.Query()
+                search = self.database.search(Date.date == date)
+                if not search["inital_content"] == content["inital_content"]:
+                    # TODO does this work?
+                    search["changes"].append(add_changes_to_day(search, content))
+            except TypeError:
+                self.database.insert(content)
 
         def extract_date_of_table(title):
             date = title.split(" ")[0].split(".")
@@ -235,7 +221,7 @@ class App:
                                                  object_of_table.massage_today,
                                                  object_of_table.content_today)
         logging_time.info("writing today")
-        write_to_db(extract_date_of_table(table_item_today["day"]), table_item_today)
+        write_to_db(extract_date_of_table(table_item_today["date"]), table_item_today)
 
         table_item_tomorow = create_table_structur(object_of_table.status_tomorow,
                                                    object_of_table.title_tomorow,
@@ -243,11 +229,7 @@ class App:
                                                    object_of_table.massage_tomorow,
                                                    object_of_table.content_tomorow)
         logging_time.info("writing tomorow")
-        write_to_db(extract_date_of_table(table_item_tomorow["day"]), table_item_tomorow)
-        with sqlitedict.SqliteDict(self.database_name) as db_dict:
-            logging_time.debug(f'dab_keys: {db_dict[self.db_keys]}')
-            # for key in db_dict[self.db_keys]:
-            #     logging_time.debug(f'item in db: {db_dict[key]}')
+        write_to_db(extract_date_of_table(table_item_tomorow["date"]), table_item_tomorow)
 
 
 class TableUtil:
