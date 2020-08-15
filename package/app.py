@@ -42,7 +42,6 @@ class App:
         time.sleep(0.01)
         self.table_object = TableUtil()
         self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
-        self.db_keys = "db_keys"
         self.now = datetime.datetime.now()
         self.update()
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
@@ -147,9 +146,11 @@ class App:
                 }
 
         def create_table_structur(status, title, header, massage, content):
+            day, month, year = extract_date_of_day(title)
             return {
                 "latest_status": status,
-                "date": title,
+                "date": f'{day}.{month}.{year}',
+                "title": title,
                 "inital_content": {"header": header,
                                    "title": title,
                                    "massage": massage,
@@ -202,18 +203,21 @@ class App:
                 return create_changes_structur(table["latest_status"])
 
         def write_to_db(date, content):
-            try:
-                Date = tinydb.Query()
-                search = self.database.search(Date.date == date)
+            search = self.database.search(tinydb.where("date") == date)
+            if len(search) > 0:
+                search = search[0]
                 if not search["inital_content"] == content["inital_content"]:
-                    # TODO does this work?
+                    # TODO dosent work right??? isnt added i think
                     search["changes"].append(add_changes_to_day(search, content))
-            except TypeError:
+                else:
+                    logging_time.info("nothing changed")
+            else:
+                logging_time.debug("writeing to db")
                 self.database.insert(content)
 
-        def extract_date_of_table(title):
-            date = title.split(" ")[0].split(".")
-            return f'{date[0]}:{date[1]}:{date[2]}'
+        def extract_date_of_day(day_date):
+            date = day_date.split(" ")[0].split(".")
+            return int(date[0]), int(date[1]), int(date[2])
 
         table_item_today = create_table_structur(object_of_table.status_today,
                                                  object_of_table.title_today,
@@ -221,7 +225,7 @@ class App:
                                                  object_of_table.massage_today,
                                                  object_of_table.content_today)
         logging_time.info("writing today")
-        write_to_db(extract_date_of_table(table_item_today["date"]), table_item_today)
+        write_to_db(table_item_today["date"], table_item_today)
 
         table_item_tomorow = create_table_structur(object_of_table.status_tomorow,
                                                    object_of_table.title_tomorow,
@@ -229,7 +233,7 @@ class App:
                                                    object_of_table.massage_tomorow,
                                                    object_of_table.content_tomorow)
         logging_time.info("writing tomorow")
-        write_to_db(extract_date_of_table(table_item_tomorow["date"]), table_item_tomorow)
+        write_to_db(table_item_tomorow["date"], table_item_tomorow)
 
 
 class TableUtil:
@@ -278,19 +282,16 @@ class TableUtil:
         table = []
         for row in contents:
             colums = row.split("|")
-            if len(colums) > 1:
-                del colums[0]
-                del colums[-1]
+            if len(row) > 2:
+                for item in colums:
+                    if item == "":
+                        del colums[colums.index(item)]
                 table.append({"id": unique_id,
                               "row": colums})
                 unique_id += 1
-        i = 0
-        while i < 3:
-            i += 1
-            del table[0]
-            if i == 2:
-                self.table_header = table[0]
-        del table[-1]
+        # TODO header is deleted here some how
+        self.table_header = table[1]
+        del table[:2]
         massage = re.sub("\n", "", massage, 1)
         if massage == "None":
             massage = "Es gibt keine Nachrichten zum Tag"
