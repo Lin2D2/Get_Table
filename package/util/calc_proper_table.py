@@ -10,6 +10,8 @@ def calc(table_dont_change, changed_view=False):
     index_of_Entfall = header_row.index("Entfall")
     del header_row
 
+    # TODO add join Vertretung and Info
+
     # joining Entfall and Mitbetreuung
     for row in table["inital_content"]["content"]:
         value_of_VertretungsText = row["row"][index_of_VertretungsText]
