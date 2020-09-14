@@ -6,7 +6,7 @@ def calc(table_dont_change, changed_view=False):
     NDruck_was = []
     header_row = table["inital_content"]["header"]["row"]
     index_of_VertretungsText = header_row.index("Text")
-    index_of_Mitbetreuung = header_row.index("Mitbetr.")
+    index_of_Mitbetreuung = header_row.index("Mitbetreuung")
     index_of_Entfall = header_row.index("Entfall")
     del header_row
 

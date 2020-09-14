@@ -19,7 +19,7 @@ try:
 except ImportError:
     sys.exit("Failed to import tinydb")
 
-
+# web api
 from web_interface import app as web_app
 
 # create logger
@@ -33,6 +33,10 @@ handler.setFormatter(logging.Formatter(
     "%Y-%m-%d %H:%M:%S"))
 
 logging.root.handlers = [handler]
+
+if not os.path.exists("vertretungsplan"):
+    print("created vertretungsplan")
+    os.mkdir("vertretungsplan")
 
 
 # TODO database instead of json file
