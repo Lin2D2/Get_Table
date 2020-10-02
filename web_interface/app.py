@@ -33,17 +33,6 @@ def routes(app, data, parent):
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
-    @app.route("/api/login", methods=["POST"])
-    def login():
-        data = flask.request.data
-        print(data.get_json())
-        json_resp = json.dumps({
-                                "state": "success",
-                                })
-        resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp
-
 
 def run(data, parent, url, port):
     app = FlaskAPI(__name__)
