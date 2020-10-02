@@ -3,6 +3,7 @@ import time
 import flask
 import json
 from flask_api import FlaskAPI
+from flask_cors import CORS, cross_origin
 
 try:
     import tinydb
@@ -29,6 +30,18 @@ def routes(app, data, parent):
                                         "content": [row["row"]
                                                     for row in day[0]["inital_content"]["content"]]}
                                 })
+        resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+
+    @app.route("/api/login", methods=['POST'])
+    @cross_origin()
+    def login():
+        print("here")
+        request_data = flask.request.get_json(force=True)
+        print(request_data)
+        print("here")
+        json_resp = json.dumps({"state": "successfully"})
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
