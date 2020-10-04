@@ -3,6 +3,7 @@ import time
 import flask
 import json
 from flask_api import FlaskAPI
+from flask_cors import CORS, cross_origin
 
 try:
     import tinydb
@@ -10,7 +11,7 @@ except ImportError:
     sys.exit("Failed to import tinydb")
 
 
-def routes(app, data, parent):
+def routes(app, cors, data, parent):
     @app.route("/api/days", methods=['GET'])
     def table_view():
         days = []
@@ -36,7 +37,7 @@ def routes(app, data, parent):
     @app.route("/api/login", methods=["POST"])
     def login():
         data = flask.request.data
-        print(data.get_json())
+        print(data)
         json_resp = json.dumps({
                                 "state": "success",
                                 })
@@ -47,7 +48,9 @@ def routes(app, data, parent):
 
 def run(data, parent, url, port):
     app = FlaskAPI(__name__)
-    routes(app, data, parent)
+    cors = CORS(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
+    routes(app, cors, data, parent)
     app.run(host=url, port=port, threaded=False, use_reloader=False, debug=True)
 #     app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
 
