@@ -47,6 +47,7 @@ def routes(app, cors, data, parent):
                 json_resp = json.dumps({
                     "state": "success",
                 })
+                # TODO add some cockie or key that this cant be faked
             else:
                 json_resp = json.dumps({
                     "state": "wrong password",
@@ -71,7 +72,7 @@ def run(data, parent, url, port):
     cors = CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
     routes(app, cors, data, parent)
-    app.run(host=url, port=port, threaded=False, use_reloader=False, debug=True)
+    app.run(host=url, port=port, threaded=True, use_reloader=False, debug=True)
 #     app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
 
 
