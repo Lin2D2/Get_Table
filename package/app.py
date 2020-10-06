@@ -38,6 +38,10 @@ if not os.path.exists("vertretungsplan"):
     print("created vertretungsplan")
     os.mkdir("vertretungsplan")
 
+if not os.path.exists("users"):
+    print("created users")
+    os.mkdir("users")
+
 
 # TODO database instead of json file
 class App:
@@ -46,6 +50,7 @@ class App:
         time.sleep(0.01)
         self.table_object = TableUtil()
         self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
+        self.database_users = tinydb.TinyDB("users/data_base_users.json")
         self.now = datetime.datetime.now()
         self.update()
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
@@ -53,7 +58,7 @@ class App:
 
     def start_web_interface(self):
         logging_time.info("starting web-thread...")
-        ip_adress = "192.168.56.1"
+        ip_adress = "192.168.0.146"
         web_app.run(data=None, parent=self, url=ip_adress, port="5000")
 
     def update(self):

@@ -37,10 +37,30 @@ def routes(app, cors, data, parent):
     @app.route("/api/login", methods=["POST"])
     def login():
         data = flask.request.data
-        print(data)
-        json_resp = json.dumps({
-                                "state": "success",
-                                })
+        # {username: <name>, password: <passwort>}
+        # TODO for adding users: parent.database_users.insert(data)
+        search = parent.database_users.search(tinydb.where("username") == data["username"])
+        if 2 > len(search) > 0:
+            search = search[0]
+            print(search)
+            if search["password"] == data["password"]:
+                json_resp = json.dumps({
+                    "state": "success",
+                })
+            else:
+                json_resp = json.dumps({
+                    "state": "wrong password",
+                })
+        else:
+            if len(search) < 1:
+                json_resp = json.dumps({
+                    "state": "need to Sign in",
+                })
+            else:
+                print("something not expected!!!")
+                json_resp = json.dumps({
+                    "state": "failed",
+                })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
