@@ -2,6 +2,7 @@ import sys
 import time
 import flask
 import json
+from datetime import date
 from flask_api import FlaskAPI
 from flask_cors import CORS, cross_origin
 
@@ -9,6 +10,8 @@ try:
     import tinydb
 except ImportError:
     sys.exit("Failed to import tinydb")
+
+week_days_german = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
 
 
 def routes(app, cors, data, parent):
@@ -29,6 +32,34 @@ def routes(app, cors, data, parent):
                                 "day": {"header": [day[0]["inital_content"]["header"]["row"]],
                                         "content": [row["row"]
                                                     for row in day[0]["inital_content"]["content"]]}
+                                })
+        resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+
+    @app.route("/api/today", methods=['GET'])
+    def table_today():
+        today = date.today()
+        week_day = week_days_german[today.weekday()]
+        # title_today: "1.9.2020 Dienstag, Woche A"
+        if week_day == parent.table_object.title_today.split(" ")[1].strip(","):
+            table_today_data = {"title": parent.table_object.title_today,
+                                "massage": parent.table_object.massage_today.strip("Nachrichten zum Tag\n"),
+                                "header": [parent.table_object.table_header["row"]],
+                                "content": [row["row"] for row in parent.table_object.content_today],
+                                }
+        elif week_day == parent.table_object.title_tomorow.split(" ")[1].strip(","):
+            table_today_data = {"title": parent.table_object.title_tomorow,
+                                "massage": parent.table_object.massage_tomorow.strip("Nachrichten zum Tag\n"),
+                                "header": [parent.table_object.table_header],
+                                "content": [row["row"] for row in parent.table_object.content_tomorow],
+                                }
+        else:
+            print("weekend?")
+            table_today_data = {}  # temp
+            # table_today_data = {"title": parent.table_object}
+        json_resp = json.dumps({"time": time.time(),
+                                "day": table_today_data
                                 })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
