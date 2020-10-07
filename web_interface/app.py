@@ -5,6 +5,7 @@ import json
 from datetime import date
 from flask_api import FlaskAPI
 from flask_cors import CORS, cross_origin
+import package.util.table_merge_row as table_merge_row
 
 try:
     import tinydb
@@ -37,22 +38,32 @@ def routes(app, cors, data, parent):
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
-    @app.route("/api/today", methods=['GET'])
-    def table_today():
+    @app.route("/api/<today_tomorrow>", methods=['GET'])
+    def table_today_tomorrow(today_tomorrow):
+        print(today_tomorrow)
         today = date.today()
-        week_day = week_days_german[today.weekday()]
         # title_today: "1.9.2020 Dienstag, Woche A"
-        if week_day == parent.table_object.title_today.split(" ")[1].strip(","):
+        if (week_days_german[today.weekday()] if today_tomorrow == "today" else week_days_german[
+            today.weekday() + 1]) == parent.table_object.title_today.split(" ")[1].strip(","):
+            header, content = table_merge_row.calc({
+                "inital_content": {"header": parent.table_object.table_header,
+                                   "content": parent.table_object.content_today},
+            })
             table_today_data = {"title": parent.table_object.title_today,
                                 "massage": parent.table_object.massage_today.strip("Nachrichten zum Tag\n"),
-                                "header": [parent.table_object.table_header["row"]],
-                                "content": [row["row"] for row in parent.table_object.content_today],
+                                "header": [header],
+                                "content": content,
                                 }
-        elif week_day == parent.table_object.title_tomorow.split(" ")[1].strip(","):
+        elif (week_days_german[today.weekday()] if today_tomorrow == "today" else week_days_german[
+            today.weekday() + 1]) == parent.table_object.title_tomorow.split(" ")[1].strip(","):
+            header, content = table_merge_row.calc({
+                "inital_content": {"header": parent.table_object.table_header,
+                                   "content": parent.table_object.content_tomorow},
+            })
             table_today_data = {"title": parent.table_object.title_tomorow,
                                 "massage": parent.table_object.massage_tomorow.strip("Nachrichten zum Tag\n"),
-                                "header": [parent.table_object.table_header],
-                                "content": [row["row"] for row in parent.table_object.content_tomorow],
+                                "header": [header],
+                                "content": content,
                                 }
         else:
             print("weekend?")
@@ -63,6 +74,7 @@ def routes(app, cors, data, parent):
                                 })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
+        print(json_resp)
         return resp
 
     @app.route("/api/login", methods=["POST"])
