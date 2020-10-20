@@ -59,7 +59,7 @@ class App:
     def start_web_interface(self):
         logging_time.info("starting web-thread...")
         ip_adress = "192.168.0.146"
-        web_app.run(data=None, parent=self, url=ip_adress, port="5000")
+        web_app.run(parent=self, url=ip_adress, port="5000")
 
     def update(self):
         logging_time.info("performing update...")
