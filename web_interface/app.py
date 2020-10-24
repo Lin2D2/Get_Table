@@ -38,7 +38,7 @@ def routes(app, cors, parent):
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
-    @app.route("/api/<today_tomorrow>", methods=['GET'])
+    @app.route("/api/today-tomorrow/<today_tomorrow>", methods=['GET'])
     def table_today_tomorrow(today_tomorrow):
         print(today_tomorrow)
         today = date.today()
