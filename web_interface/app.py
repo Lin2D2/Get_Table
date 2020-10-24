@@ -2,10 +2,12 @@ import sys
 import time
 import flask
 import json
+import logging
 from datetime import date
 from flask_api import FlaskAPI
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import package.util.table_merge_row as table_merge_row
+from gevent.pywsgi import WSGIServer
 
 try:
     import tinydb
@@ -15,7 +17,7 @@ except ImportError:
 week_days_german = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
 
 
-def routes(app, cors, parent):
+def routes(app, parent):
     @app.route("/api/days", methods=['GET'])
     def table_view():
         days = []
@@ -40,7 +42,7 @@ def routes(app, cors, parent):
 
     @app.route("/api/today-tomorrow/<today_tomorrow>", methods=['GET'])
     def table_today_tomorrow(today_tomorrow):
-        print(today_tomorrow)
+        logging.debug(today_tomorrow)
         today = date.today()
         # title_today: "1.9.2020 Dienstag, Woche A"
         if (week_days_german[today.weekday()] if today_tomorrow == "today" else week_days_german[
@@ -67,7 +69,7 @@ def routes(app, cors, parent):
                                 }
         # TODO check for the weekend not with else
         else:
-            print("weekend?")
+            logging.debug("weekend?")
             table_today_data = {}  # temp
             # table_today_data = {"title": parent.table_object}
         json_resp = json.dumps({"time": time.time(),
@@ -75,7 +77,7 @@ def routes(app, cors, parent):
                                 })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
-        print(json_resp)
+        logging.debug(json_resp)
         return resp
 
     @app.route("/api/login", methods=["POST"])
@@ -87,7 +89,7 @@ def routes(app, cors, parent):
         search = parent.database_users.search(tinydb.where("username") == data["username"])
         if 2 > len(search) > 0:
             search = search[0]
-            print(search)
+            logging.debug(search)
             if search["password"] == data["password"]:
                 try:
                     json_resp = json.dumps({
@@ -109,7 +111,7 @@ def routes(app, cors, parent):
                     "state": "need to Sign in",
                 })
             else:
-                print("something not expected!!!")
+                logging.warning("something not expected!!!")
                 json_resp = json.dumps({
                     "state": "failed",
                 })
@@ -138,8 +140,7 @@ def routes(app, cors, parent):
                     "state": "failed login",
                 })
         else:
-            print("something not expected!!!")
-            print(data)
+            logging.warning(f"something not expected!!! data:{data}")
             json_resp = json.dumps({
                 "state": "failed",
             })
@@ -150,11 +151,13 @@ def routes(app, cors, parent):
 
 def run(parent, url, port):
     app = FlaskAPI(__name__)
-    cors = CORS(app)
+    CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
-    routes(app, cors, parent)
-    app.run(host=url, port=port, threaded=True, use_reloader=False, debug=True)
-#     app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
+    routes(app, parent)
+    # app.run(host=url, port=port, threaded=True, use_reloader=False, debug=True)
+    # app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
+    http_server = WSGIServer((url, int(port)), app)
+    http_server.serve_forever()
 
 
 # run(data=None, parent=None, url="0.0.0.0", port="5000")

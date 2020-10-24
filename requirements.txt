@@ -5,3 +5,4 @@ flask_cors
 requests
 tinydb
 urllib3
+gevent
