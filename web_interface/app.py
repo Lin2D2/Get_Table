@@ -44,9 +44,7 @@ def routes(app, parent):
     def table_today_tomorrow(today_tomorrow):
         logging.debug(today_tomorrow)
         today = date.today()
-        # title_today: "1.9.2020 Dienstag, Woche A"
-        if (week_days_german[today.weekday()] if today_tomorrow == "today" else week_days_german[
-            today.weekday() + 1]) == parent.table_object.title_today.split(" ")[1].strip(","):
+        if today_tomorrow == "today":
             header, content = table_merge_row.calc({
                 "inital_content": {"header": parent.table_object.table_header,
                                    "content": parent.table_object.content_today},
@@ -56,8 +54,7 @@ def routes(app, parent):
                                 "header": [header],
                                 "content": content,
                                 }
-        elif (week_days_german[today.weekday()] if today_tomorrow == "today" else week_days_german[
-            today.weekday() + 1]) == parent.table_object.title_tomorow.split(" ")[1].strip(","):
+        elif today_tomorrow == "tomorrow":
             header, content = table_merge_row.calc({
                 "inital_content": {"header": parent.table_object.table_header,
                                    "content": parent.table_object.content_tomorow},
@@ -67,11 +64,8 @@ def routes(app, parent):
                                 "header": [header],
                                 "content": content,
                                 }
-        # TODO check for the weekend not with else
         else:
-            logging.debug("weekend?")
             table_today_data = {}  # temp
-            # table_today_data = {"title": parent.table_object}
         json_resp = json.dumps({"time": time.time(),
                                 "day": table_today_data
                                 })
@@ -158,6 +152,5 @@ def run(parent, url, port):
     # app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
     http_server = WSGIServer((url, int(port)), app)
     http_server.serve_forever()
-
 
 # run(data=None, parent=None, url="0.0.0.0", port="5000")
