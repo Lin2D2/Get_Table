@@ -89,6 +89,7 @@ def routes(app, parent):
                     json_resp = json.dumps({
                         "state": "success",
                         "timetable": search["timetable"],
+                        "year": search["year"],
                     })
                 except KeyError:
                     json_resp = json.dumps({
