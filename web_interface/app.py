@@ -35,7 +35,9 @@ def routes(app, parent):
         json_resp = json.dumps({"time": time.time(),
                                 "day": {"header": [day[0]["inital_content"]["header"]["row"]],
                                         "content": [row["row"]
-                                                    for row in day[0]["inital_content"]["content"]]}
+                                                    for row in day[0]["inital_content"]["content"]],
+                                        #TODO check if the massage works
+                                        "massage": day[0]["inital_content"]["massage"].strip("Nachrichten zum Tag\n"),}
                                 })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
