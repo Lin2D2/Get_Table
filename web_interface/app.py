@@ -23,6 +23,7 @@ def routes(app, parent):
         days = []
         for day in parent.database.all():
             days.append(day["date"])
+        days.reverse()
         json_resp = json.dumps({"time": time.time(), "days": days})
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
         resp.headers['Access-Control-Allow-Origin'] = '*'
