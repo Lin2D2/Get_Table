@@ -11,6 +11,7 @@ def calc(table_dont_change):
     header_row = table["inital_content"]["header"]["row"]
     content_rows = []
 
+    index_of_class = header_row.index("Klasse(n)")
     index_of_VertretungsText = header_row.index("Text")
     index_of_Vertretenvon = header_row.index("Vertr. von")
     index_of_Mitbetreuung = header_row.index("Mitbetreuung")
@@ -25,6 +26,7 @@ def calc(table_dont_change):
     header_row.insert(2, "Info")
     header = header_row
     for row in table["inital_content"]["content"]:
+        value_of_class = row["row"][index_of_class]
         value_of_VertretungsText = row["row"][index_of_VertretungsText]
         value_of_Vertretenvon = row["row"][index_of_Vertretenvon]
         value_of_Mitbetreuung = row["row"][index_of_Mitbetreuung]
@@ -32,6 +34,12 @@ def calc(table_dont_change):
         value_of_NDruck = row["row"][index_of_NDruck]
         _info = []
         entfall = False
+        AG__ = False
+        if value_of_class == "AG":
+            _info.append("AG")
+        if value_of_class == empty_row:
+            _info.append("AG?")
+            AG__ = True
         if value_of_Mitbetreuung == "x":
             _info.append("Mitbetreuung")
         if value_of_Entfall == "x":
@@ -46,7 +54,7 @@ def calc(table_dont_change):
         del row["row"][index_of_NDruck], row["row"][index_of_Entfall], row["row"][index_of_Mitbetreuung], row["row"][
             index_of_Vertretenvon], row["row"][index_of_VertretungsText]
 
-        if not entfall:
+        if not entfall or AG__:
             if row["row"][4] != row["row"][7]:
                 _info.insert(0, f'Raumwechsel')
             if row["row"][2] != row["row"][5]:
@@ -57,11 +65,6 @@ def calc(table_dont_change):
         for e in _info:
             info = (f"{info}, {e}" if info != "" else e)
 
-        if row["row"][1] != empty_row:
-            row["row"].insert(2, info)
-        elif row["row"][0] != empty_row:
-            row["row"].insert(2, "AG")
-        else:
-            row["row"].insert(2, info)
+        row["row"].insert(2, info)
         content_rows.append(row["row"])
     return header, content_rows
