@@ -65,7 +65,7 @@ def routes(app, parent):
             })
             table_today_data = {"title": parent.table_object.title_tomorow,
                                 "massage": parent.table_object.massage_tomorow.strip("Nachrichten zum Tag\n"),
-                                "header": [header],
+                                "header": None if header is None else [header],
                                 "content": content,
                                 }
         else:
