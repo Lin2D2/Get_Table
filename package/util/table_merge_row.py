@@ -6,6 +6,8 @@ from pprint import pprint
 
 # TODO maybe this should be client side
 def calc(table_dont_change):
+    if table_dont_change["inital_content"]["content"] is None:
+        return None, None
     empty_row = "\u00a0"
     table = copy.deepcopy(table_dont_change)
     header_row = table["inital_content"]["header"]["row"]

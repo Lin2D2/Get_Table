@@ -33,13 +33,14 @@ def routes(app, parent):
     def table_view_day(date):
         day = parent.database.search(tinydb.where("date") == date)
         json_resp = json.dumps({"time": time.time(),
-                                "day": {"header": [day[0]["inital_content"]["header"]["row"]],
-                                        "content": [row["row"]
-                                                    for row in day[0]["inital_content"]["content"]],
-                                        #TODO check if the massage works
-                                        "massage": day[0]["inital_content"]["massage"].strip("Nachrichten zum Tag\n"),}
+                                "day": {"massage": day[0]["inital_content"]["massage"].strip("Nachrichten zum Tag\n"),
+                                        "header": None if day[0]["inital_content"]["header"] is None
+                                        else [day[0]["inital_content"]["header"]["row"]],
+                                        "content": None if day[0]["inital_content"]["content"] is None
+                                        else [row["row"] for row in day[0]["inital_content"]["content"]],}
                                 })
         resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
+        # TODO temp for debug
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
@@ -54,7 +55,7 @@ def routes(app, parent):
             })
             table_today_data = {"title": parent.table_object.title_today,
                                 "massage": parent.table_object.massage_today.strip("Nachrichten zum Tag\n"),
-                                "header": [header],
+                                "header": (None if header is None else [header]),
                                 "content": content,
                                 }
         elif today_tomorrow == "tomorrow":
@@ -146,6 +147,13 @@ def routes(app, parent):
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
+    # @app.route("/api/login", methods=['POST'])
+    # def table_view_day():
+    #     request = flask.request
+    #     if request.is_secure():
+    #         return
+    #     return True
+
 
 def run(parent, url, port):
     app = FlaskAPI(__name__)
@@ -153,7 +161,6 @@ def run(parent, url, port):
     app.config['CORS_HEADERS'] = 'Content-Type'
     routes(app, parent)
     # app.run(host=url, port=port, threaded=True, use_reloader=False, debug=True)
-    # app.run(debug=True, host=url, port=port, threaded=True, use_reloader=True)
     http_server = WSGIServer((url, int(port)), app)
     http_server.serve_forever()
 

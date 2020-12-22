@@ -204,7 +204,8 @@ class App:
                 content_changed = None
                 if not day["inital_content"]["massage"] == table["inital_content"]["massage"]:
                     massage_changed = table["inital_content"]["massage"]
-                if not day["inital_content"]["content"] == table["inital_content"]["content"]:
+                if not day["inital_content"]["content"] == table["inital_content"]["content"] \
+                        and table["inital_content"]["content"] is not None:
                     content_changed = find_changes_in_table(day["inital_content"]["content"],
                                                             table["inital_content"]["content"])
                 return create_changes_structur(table["latest_status"], massage_changed, content_changed)
@@ -274,52 +275,67 @@ class TableUtil:
     def soup(file):
         return BeautifulSoup(file, "html.parser")
 
-    def formatting(self, source):
+    def formatting(self, source, contentBool):
         unique_id = 0
         raw_list = self.soup(source).find(class_="mon_list")
-        contents = self.soup(str(raw_list)).get_text(separator="|")
+        if contentBool:
+            contents = self.soup(str(raw_list)).get_text(separator="|")
         raw_title = self.soup(source).find(class_="mon_title")
         title = self.soup(str(raw_title)).get_text(separator="|")
         raw_massage = self.soup(source).find(class_="info")
         massage = self.soup(str(raw_massage)).get_text(separator="")
-        contents = re.split("\n", contents)
+        if contentBool:
+            contents = re.split("\n", contents)
         raw_status = self.soup(source).find(class_="mon_head")
         raw_status = self.soup(str(raw_status)).find_all("p")
         status = None
         for e in raw_status:
             if e.find("Stand:") != -1:
                 status = self.soup(str(raw_status)).get_text(separator="").strip("[").strip("]").split("Stand: ")[-1]
-        table = []
-        for row in contents:
-            colums = row.split("|")
-            if len(row) > 2:
-                for item in colums:
-                    if item == "":
-                        del colums[colums.index(item)]
-                table.append({"id": unique_id,
-                              "row": colums})
-                unique_id += 1
+        if contentBool:
+            table = []
+            for row in contents:
+                colums = row.split("|")
+                if len(row) > 2:
+                    for item in colums:
+                        if item == "":
+                            del colums[colums.index(item)]
+                    table.append({"id": unique_id,
+                                  "row": colums})
+                    unique_id += 1
         # TODO header is deleted here some how
-        self.table_header = table[1]
-        del table[:2]
+        if contentBool:
+            self.table_header = table[1]
+            del table[:2]
         massage = re.sub("\n", "", massage, 1)
         if massage == "None":
             massage = "Es gibt keine Nachrichten zum Tag"
-        return title, massage, table, status
+        if contentBool:
+            return title, massage, table, status
+        else:
+            return title, massage, None, status
 
     def get_page(self):
         sess = requests.Session()
         request_data_today = sess.get(self.new_url_today, headers=self.headers)
         request_data_tomorow = sess.get(self.new_url_tomorow, headers=self.headers)
-        if str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+        if str(request_data_tomorow.content).find("Keine Vertretungen") == -1:
             self.title_today, \
             self.massage_today, \
             self.content_today, \
-            self.status_today = self.formatting(request_data_today.content)
-        if str(request_data_tomorow.content).find("Keine Vertretusngen") == -1:
+            self.status_today = self.formatting(request_data_today.content, True)
+        else:
+            self.title_today, \
+            self.massage_today, \
+            self.content_today, \
+            self.status_today = self.formatting(request_data_today.content, False)
+        if str(request_data_tomorow.content).find("Keine Vertretungen") == -1:
             self.title_tomorow, \
             self.massage_tomorow, \
             self.content_tomorow, \
-            self.status_tomorow = self.formatting(request_data_tomorow.content)
+            self.status_tomorow = self.formatting(request_data_tomorow.content, True)
         else:
-            print("Keine Vertretung")
+            self.title_tomorow, \
+            self.massage_tomorow, \
+            self.content_tomorow, \
+            self.status_tomorow = self.formatting(request_data_tomorow.content, False)
