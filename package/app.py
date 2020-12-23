@@ -49,7 +49,10 @@ class App:
         logging_time.info("Start")
         time.sleep(0.01)
         self.table_object = TableUtil()
-        self.Subjects = Subjects()
+        sess = requests.Session()
+        self.Subjects = Subjects(sess)
+        self.Teachers = Teachers(sess)
+        sess.close()
         self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
         self.database_users = tinydb.TinyDB("users/data_base_users.json")
         self.now = datetime.datetime.now()
@@ -340,13 +343,14 @@ class TableUtil:
             self.massage_tomorow, \
             self.content_tomorow, \
             self.status_tomorow = self.formatting(request_data_tomorow.content, False)
+        sess.close()
 
 
 class Subjects:
-    def __init__(self):
+    def __init__(self, sess):
         url = "https://www.herderschule-lueneburg.de/lernen/faecher/biologie/"
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
-        source = requests.get(url, headers=headers).content
+        source = sess.get(url, headers=headers).content
         raw_subject_list = self.soup(source).find("ul", {"id": "menu-faecher-menue"}).find_all("li")
         self.subject_list = [e.get_text(separator=",") for e in raw_subject_list]
         self.subject_list_short = []
@@ -386,10 +390,10 @@ class Subjects:
 
 
 class Teachers:
-    def __init__(self):
+    def __init__(self, sess):
         url = "https://www.herderschule-lueneburg.de/leute/kollegium/"
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
-        source = requests.get(url, headers=headers).content
+        source = sess.get(url, headers=headers).content
         raw_teacher_list = self.soup(source).find("div", {"id": "us_grid_1"})\
             .find("div", {"class": "w-grid-list"}).find_all("article")
         teacher_map_list = []
