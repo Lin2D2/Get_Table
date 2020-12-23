@@ -49,6 +49,7 @@ class App:
         logging_time.info("Start")
         time.sleep(0.01)
         self.table_object = TableUtil()
+        self.Subjects = Subjects()
         self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
         self.database_users = tinydb.TinyDB("users/data_base_users.json")
         self.now = datetime.datetime.now()
@@ -339,3 +340,46 @@ class TableUtil:
             self.massage_tomorow, \
             self.content_tomorow, \
             self.status_tomorow = self.formatting(request_data_tomorow.content, False)
+
+
+class Subjects:
+    def __init__(self):
+        url = "https://www.herderschule-lueneburg.de/lernen/faecher/biologie/"
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
+        source = requests.get(url, headers=headers).content
+        raw_subject_list = self.soup(source).find("ul", {"id": "menu-faecher-menue"}).find_all("li")
+        self.subject_list = [e.get_text(separator=",") for e in raw_subject_list]
+        self.subject_list_short = []
+        for e in self.subject_list:
+            e = e.upper()
+            e_split_und = e.split(" UND ")
+            e_split_leer = e.split(" ")
+            e_split_line = e.split("-")
+            if len(e_split_und) > 1:
+                short = e_split_und[0][0] + e_split_und[1][0]
+                if short not in self.subject_list_short:
+                    self.subject_list_short.append(short)
+                else:
+                    self.subject_list_short.append(e_split_und[0][0] + "u" + e_split_und[1][0])
+            elif len(e_split_leer) > 1:
+                short = e_split_leer[0][0] + e_split_leer[1][0]
+                if short not in self.subject_list_short:
+                    self.subject_list_short.append(short)
+                else:
+                    self.subject_list_short.append(e_split_leer[0][0] + e_split_leer[0][1] + e_split_leer[1][0])
+            elif len(e_split_line) > 1:
+                short = e_split_line[0][0] + e_split_line[1][0]
+                if short not in self.subject_list_short:
+                    self.subject_list_short.append(short)
+                else:
+                    self.subject_list_short.append(e_split_line[0][0] + "-" + e_split_line[1][0])
+            else:
+                short = e[0] + e[1]
+                if short not in self.subject_list_short:
+                    self.subject_list_short.append(short)
+                else:
+                    self.subject_list_short.append(e[0] + e[1] + e[2])
+
+    @staticmethod
+    def soup(file):
+        return BeautifulSoup(file, "html.parser")
