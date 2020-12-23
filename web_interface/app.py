@@ -37,6 +37,13 @@ def routes(app, parent):
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
+    @app.route("/api/teachers", methods=['GET'])
+    def teachers():
+        json_resp = json.dumps({"teachers": parent.Teachers.teacher_list})
+        resp = flask.Response(json_resp, content_type='application/json; charset=utf-8')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+
     @app.route("/api/day/<date>", methods=['GET'])
     def table_view_day(date):
         day = parent.database.search(tinydb.where("date") == date)

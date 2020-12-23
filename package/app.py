@@ -383,3 +383,32 @@ class Subjects:
     @staticmethod
     def soup(file):
         return BeautifulSoup(file, "html.parser")
+
+
+class Teachers:
+    def __init__(self):
+        url = "https://www.herderschule-lueneburg.de/leute/kollegium/"
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0'}
+        source = requests.get(url, headers=headers).content
+        raw_teacher_list = self.soup(source).find("div", {"id": "us_grid_1"})\
+            .find("div", {"class": "w-grid-list"}).find_all("article")
+        teacher_map_list = []
+        for article in raw_teacher_list:
+            article_objects_list = article.find("div", {"class": "w-grid-item-h"})
+            name = article_objects_list.find("div", {"class": "w-hwrapper"}).get_text(separator="|")
+            subjects = [el.strip() for el in article_objects_list.find("div", {"class": "w-html usg_html_1"})\
+                .get_text(separator="|").replace("Unterrichtsfach:", "").split(",")]
+            other = [el.get_text(separator="") for el in article_objects_list
+                .find_all("div", {"class": "w-post-elm"}, recursive=False)]
+            name_split = name.split("(")
+            teacher_map_list.append({"name": {"long": name_split[0].replace("|", " ").strip(),
+                                     "short": name_split[1].replace("|", "").replace(")", "").strip()},
+                                     "subjects": subjects,
+                                     "contact": other[0].replace("Kontakt:", "").replace("[at]", "@").replace(" ", "")
+                                     if str(other).find("Kontakt:") != -1 else None,
+                                     "other": other[1:] if len(other) > 1 else None})
+        self.teacher_list = teacher_map_list
+
+    @staticmethod
+    def soup(file):
+        return BeautifulSoup(file, "html.parser")
