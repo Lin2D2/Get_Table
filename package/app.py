@@ -49,12 +49,13 @@ class App:
         logging_time.info("Start")
         time.sleep(0.01)
         self.table_object = TableUtil()
+        self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
+        self.database_users = tinydb.TinyDB("users/data_base_users.json")
         sess = requests.Session()
         self.Subjects = Subjects(sess)
         self.Teachers = Teachers(sess)
+        self.Rooms = Rooms(self.database)
         sess.close()
-        self.database = tinydb.TinyDB("vertretungsplan/data_base.json")
-        self.database_users = tinydb.TinyDB("users/data_base_users.json")
         self.now = datetime.datetime.now()
         self.update()
         threading.Thread(target=self.start_web_interface, name="web_threat").start()
@@ -422,3 +423,22 @@ class Teachers:
     @staticmethod
     def soup(file):
         return BeautifulSoup(file, "html.parser")
+
+
+class Rooms:
+    # TODO this only works if the dataset is large enough to include all rooms
+    def __init__(self, database):
+        rooms = []
+        for content in [entries["inital_content"]["content"] for entries in database.all()]:
+            if type(content) == list:
+                if None not in content:
+                    for row in content:
+                        row = row["row"]
+                        rooms.append(row[4])
+                        rooms.append(row[7])
+        rooms = list(set(rooms))
+        rooms.sort()
+        rooms.remove("---")
+        rooms.remove("\xa0")
+        rooms.insert(0, "---")
+        self.rooms = rooms
