@@ -383,6 +383,8 @@ class Subjects:
                     self.subject_list_short.append(short)
                 else:
                     self.subject_list_short.append(e[0] + e[1] + e[2])
+        self.subject_list.insert(0, "---")
+        self.subject_list_short.insert(0, "---")
 
     @staticmethod
     def soup(file):
@@ -406,11 +408,15 @@ class Teachers:
                 .find_all("div", {"class": "w-post-elm"}, recursive=False)]
             name_split = name.split("(")
             teacher_map_list.append({"name": {"long": name_split[0].replace("|", " ").strip(),
-                                     "short": name_split[1].replace("|", "").replace(")", "").strip()},
+                                              "short": name_split[1].replace("|", "").replace(")", "").strip()},
                                      "subjects": subjects,
                                      "contact": other[0].replace("Kontakt:", "").replace("[at]", "@").replace(" ", "")
                                      if str(other).find("Kontakt:") != -1 else None,
                                      "other": other[1:] if len(other) > 1 else None})
+        teacher_map_list.insert(0, {"name": {"long": "---", "short": "---"},
+                                    "subjects": [],
+                                    "contact": None,
+                                    "other": None})
         self.teacher_list = teacher_map_list
 
     @staticmethod
