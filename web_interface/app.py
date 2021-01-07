@@ -150,8 +150,10 @@ def routes(app, parent):
             search = search[0]
             if search["password"] == data["login"]["password"]:
                 parent.database_users.update(
-                    {"timetable": {"monday": data["monday"], "tuesday": data["tuesday"], "wednesday": data["wednesday"],
-                                   "thursday": data["thursday"], "friday": data["friday"]}},
+                    {"timetable": data["timetable"]},
+                    User.username == data["login"]["username"])
+                parent.database_users.update(
+                    {"year": data["year"]},
                     User.username == data["login"]["username"])
                 json_resp = json.dumps({
                     "state": "success",

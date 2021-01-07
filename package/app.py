@@ -354,6 +354,8 @@ class Subjects:
         source = sess.get(url, headers=headers).content
         raw_subject_list = self.soup(source).find("ul", {"id": "menu-faecher-menue"}).find_all("li")
         self.subject_list = [e.get_text(separator=",") for e in raw_subject_list]
+        self.subject_list.append("Seminarfach")
+        self.subject_list.append("AG")
         self.subject_list_short = []
         for e in self.subject_list:
             e = e.upper()
