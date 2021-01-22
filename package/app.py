@@ -324,7 +324,7 @@ class TableUtil:
         sess = requests.Session()
         request_data_today = sess.get(self.new_url_today, headers=self.headers)
         request_data_tomorow = sess.get(self.new_url_tomorow, headers=self.headers)
-        if str(request_data_tomorow.content).find("Keine Vertretungen") == -1:
+        if str(request_data_today.content).find("Keine Vertretungen") == -1:
             self.title_today, \
             self.massage_today, \
             self.content_today, \
